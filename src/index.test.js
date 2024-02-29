@@ -1,67 +1,67 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { Window } from 'happy-dom'
-import fs from 'fs'
-import path from 'path'
-import { fireEvent } from '@testing-library/dom'
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { Window } from 'happy-dom';
+import fs from 'fs';
+import path from 'path';
+import { fireEvent } from '@testing-library/dom';
 
-//! Set the data
+const imageDirectory = './assets/ramen';
 
-const testResponseData = [
-  {
-    "id": 1,
-    "name": "Shoyu Ramen",
-    "restaurant": "Nonono",
-    "image": "./assets/ramen/shoyu.jpg",
-    "rating": 7,
-    "comment": "Delish. Can't go wrong with a classic!"
-  },
-  {
-    "id": 2,
-    "name": "Naruto Ramen",
-    "restaurant": "Naruto",
-    "image": "./assets/ramen/naruto.jpg",
-    "rating": 10,
-    "comment": "My absolute fave!"
-  },
-  {
-    "id": 3,
-    "name": "Nirvana Shiromaru",
-    "restaurant": "Ippudo",
-    "image": "./assets/ramen/nirvana.jpg",
-    "rating": "7",
-    "comment": "Do buy the hype."
-  },
-  {
-    "id": 4,
-    "name": "Gyukotsu Ramen",
-    "restaurant": "Za-Ya Ramen",
-    "image": "./assets/ramen/gyukotsu.jpg",
-    "rating": 8,
-    "comment": "Good to the last drop."
-  },
-  {
-    "id": 5,
-    "name": "Kojiro Red Ramen",
-    "restaurant": "Ramen-Ya",
-    "image": "./assets/ramen/kojiro.jpg",
-    "rating": 6,
-    "comment": "Perfect for a cold night."
-  }
-];
+let testResponseData = []
 
-vi.stubGlobal('testResponseData', testResponseData)
+const imageUrls = [
+    './assets/ramen/shoyu.jpg',
+    './assets/ramen/naruto.jpg',
+    './assets/ramen/nirvana.jpg',
+    './assets/ramen/gyukotsu.jpg',
+    './assets/ramen/kojiro.jpg'
+  ];
+  
+    testResponseData = imageUrls.map((imageUrl, index) => ({
+    id: index + 1,
+    name: `Ramen ${index + 1}`,
+    restaurant: `Restaurant ${index + 1}`,
+    image: imageUrl,
+    rating: Math.floor(Math.random() * 10) + 1, // Random rating between 1 and 10
+    comment: `Comment ${index + 1}`
+  }));
 
-//! Set the DOM
+fs.readdir(imageDirectory, (err, files) => {
+    if (err) {
+      console.error('Error reading image directory:', err);
+      return;
+     }
+    })
+  
+    // Loop through each image file
+    files.forEach((file, index) => {
+      // Extract the filename without extension
+      const name = path.parse(file).name;
+  
+      // Create an object for the image
+      const ramen = {
+        id: index + 1,
+        name: name,
+        restaurant: 'Restaurant Name', // Set a default restaurant name
+        image: path.join(imageDirectory, file), // Set the image path
+        rating: Math.floor(Math.random() * 10) + 1, // Generate a random rating (1 to 10)
+        comment: 'Insert Comment Here' // Set a default comment
+      };
+  
+      // Push the image object into the testResponseData array
+      testResponseData.push(ramen);
+    });
+ 
+console.log('Generated testResponseData:', testResponseData);
+
+vi.stubGlobal('testResponseData', testResponseData);
 
 const htmlDocPath = path.join(process.cwd(), 'index.html');
 const htmlDocumentContent = fs.readFileSync(htmlDocPath).toString();
-const window = new Window
-const document = window.document
-document.body.innerHTML = ''
-document.write(htmlDocumentContent)
-vi.stubGlobal('document', document)
-
-//! Mock the Fetch API globally
+const window = new Window();
+const document = window.document;
+document.body.innerHTML = '';
+document.write(htmlDocumentContent);
+vi.stubGlobal('document', document);
 
 const testFetch = vi.fn((url) => {
   return new Promise((resolve, reject) => {
@@ -79,15 +79,12 @@ const testFetch = vi.fn((url) => {
 
 vi.stubGlobal('fetch', testFetch);
 
-import { addSubmitListener, displayRamens, handleClick, main } from './index'
-
-//! Test Suite
+import { addSubmitListener, displayRamens, handleClick, main } from './index';
 
 describe('displayRamens', () => {
-
   it('should fetch all ramens and display them as <img> inside #ramen-menu', async () => {
     const ramenMenuDiv = document.getElementById('ramen-menu');
-
+    
     displayRamens();
     await new Promise(resolve => setTimeout(resolve, 0));
 
@@ -97,8 +94,8 @@ describe('displayRamens', () => {
 
     expect(ramenImages.length).toEqual(testResponseData.length);
     expect(urls).toEqual(originalUrls);
-  })
-})
+  });
+});
 
 describe('handleClick', () => {
   it('should fire on a click on every img inside #ramen-menu', async () => {
@@ -127,7 +124,7 @@ describe('handleClick', () => {
     const ramenMenuDiv = document.getElementById('ramen-menu');
     const ramenImages = ramenMenuDiv.querySelectorAll('img');
 
-    const img = ramenImages[0]
+    const img = ramenImages[0];
     fireEvent.click(img);
 
     const detailImg = document.querySelector("#ramen-detail > .detail-image");
@@ -143,34 +140,33 @@ describe('handleClick', () => {
     expect(detailsComment.textContent).toBe("Delish. Can't go wrong with a classic!");
   });
 
-})
+});
 
-describe('addSubmitListener', () => {
+describe('handleSubmit', () => {
   it('should add a new slider image when the submit button is clicked', async () => {
     const ramenForm = document.getElementById('new-ramen');
-    addSubmitListener(ramenForm)
+    addSubmitListener();
     const newRamen = {
       name: 'Mat',
       restaurant: 'Test',
       image: './assets/ramen/nirvana.jpg',
       rating: '4',
       comment: 'test',
-    }
+    };
 
     const ramenMenuDivBefore = document.querySelectorAll('#ramen-menu img');
-    const ramenFormName = document.querySelector("#new-ramen #new-name");
-    const ramenFormRestaurant = document.querySelector("#new-ramen #new-restaurant");
-    const ramenFormImage = document.querySelector("#new-ramen #new-image");
-    const ramenFormRating = document.querySelector("#new-ramen #new-rating");
-    const ramenFormComment = document.querySelector("#new-ramen #new-comment");
 
-    ramenFormName.value = newRamen.name;
-    ramenFormRestaurant.value = newRamen.restaurant;
-    ramenFormImage.value = newRamen.image;
-    ramenFormRating.value = newRamen.rating;
-    ramenFormComment.value = newRamen.comment;
-
-    fireEvent.submit(ramenForm);
+    fireEvent.submit(ramenForm, {
+      target: {
+        name: { value: newRamen.name },
+        restaurant: { value: newRamen.restaurant },
+        image: { value: newRamen.image },
+        rating: { value: newRamen.rating },
+        comment: { value: newRamen.comment },
+      },
+      preventDefault: vi.fn(),
+      reset: vi.fn(),
+    });
 
     const ramenMenuDivAfter = document.querySelectorAll('#ramen-menu img');
     expect(ramenMenuDivAfter.length).toBe(ramenMenuDivBefore.length + 1);
@@ -185,31 +181,19 @@ describe('addSubmitListener', () => {
       rating: '4',
       comment: 'test',
       id: 6
-
-    }
+    };
     const ramenMenuDivBefore = document.querySelectorAll('#ramen-menu img');
     const ramenForm = document.getElementById('new-ramen');
-    const ramenFormName = document.querySelector("#new-ramen #new-name");
-    const ramenFormRestaurant = document.querySelector("#new-ramen #new-restaurant");
-    const ramenFormImage = document.querySelector("#new-ramen #new-image");
-    const ramenFormRating = document.querySelector("#new-ramen #new-rating");
-    const ramenFormComment = document.querySelector("#new-ramen #new-comment");
     const submitButton = document.getElementById('submit-button');
 
-    main(ramenForm)
-
-    ramenFormName.value = newRamen.name;
-    ramenFormRestaurant.value = newRamen.restaurant;
-    ramenFormImage.value = newRamen.image;
-    ramenFormRating.value = newRamen.rating;
-    ramenFormComment.value = newRamen.comment;
+    main();
 
     fireEvent.click(submitButton);
 
     const ramenMenuDivAfter = document.querySelectorAll('#ramen-menu img');
     const img = ramenMenuDivAfter[ramenMenuDivBefore.length];
-    img.addEventListener('click', (event) => {
-      handleClick(newRamen, event);
+    img.addEventListener('click', () => {
+      handleClick(newRamen);
     });
     fireEvent.click(img);
 
@@ -224,5 +208,6 @@ describe('addSubmitListener', () => {
     expect(detailImg.src).toBe(newRamen.image);
     expect(detailsRating.textContent).toBe(newRamen.rating.toString());
     expect(detailsComment.textContent).toBe(newRamen.comment);
-  })
-})
+  });
+});
+
