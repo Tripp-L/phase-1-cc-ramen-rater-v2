@@ -1,94 +1,109 @@
-// Callbacks
-const handleClick = (ramen) => {
-  // Add code to display ramen details
-  const detailImg = document.querySelector("#ramen-detail > .detail-image");
-  const detailName = document.querySelector("#ramen-detail > .name");
-  const detailRestaurant = document.querySelector("#ramen-detail > .restaurant");
-  const detailsRating = document.getElementById("rating-display");
-  const detailsComment = document.getElementById("comment-display");
+fetch("http://localhost:3000/ramens")
+  .then((res) => res.json())
+  .then((data) => displayRamens(data))
 
-  detailImg.src = ramen.image;
-  detailName.textContent = ramen.name;
-  detailRestaurant.textContent = ramen.restaurant;
-  detailsRating.textContent = ramen.rating.toString();
-  detailsComment.textContent = ramen.comment;
-};
+const displayRamens = (ramenImgs) => {
 
-const handleSubmit = (event) => {
-  event.preventDefault();
-  // Add code to handle form submission
-  const newRamen = {
-    name: event.target.name.value,
-    restaurant: event.target.restaurant.value,
-    image: event.target.image.value,
-    rating: event.target.rating.value,
-    comment: event.target.comment.value,
-  };
+  const menuImgs = document.querySelector('#ramen-menu')
+  ramenImgs.forEach((ramen) => {
+    const img = document.createElement('img')
+    img.src = ramen.image
+    img.alt = ramen.name
+    img.addEventListener('click', () => handleClick(ramen))
+    menuImgs.appendChild(img)
+  })
+}
 
-  // Display new ramen image
-  const ramenMenuDiv = document.getElementById('ramen-menu');
-  const newRamenImg = document.createElement('img');
-  newRamenImg.src = newRamen.image;
-  ramenMenuDiv.appendChild(newRamenImg);
+const handleClick = (ramenDetails) => {
 
-  // Attach click listener to new element
-  newRamenImg.addEventListener('click', () => {
-    handleClick(newRamen);
-  });
-};
+  const detailImg = document.querySelector('.detail-image')
+  detailImg.src = ramenDetails.image
+  detailImg.alt = ramenDetails.name
+  
+  const detailName = document.querySelector('.name')
+  detailName.textContent = ramenDetails.name
+
+  const detailRestaurant = document.querySelector('.restaurant')
+  detailRestaurant.textContent = ramenDetails.restaurant
+
+  const detailsRating = document.querySelector('#rating-display')
+  detailsRating.textContent = ramenDetails.rating
+
+  const detailsComment = document.querySelector('#comment-display')
+  detailsComment.textContent = ramenDetails.comment
+
+}
 
 const addSubmitListener = () => {
-  // Add code to attach submit listener to the form
-  const ramenForm = document.getElementById('new-ramen');
-  ramenForm.addEventListener('submit', handleSubmit);
-};
+  const form = document.querySelector('#new-ramen')
 
-const displayRamens = async () => {
-  try {
-  // Add code to fetch and display ramens
-    console.log('Fetching ramens...');
-    const response = await fetch('http://localhost:3000/ramens');
-    if (!response.ok) {
-      throw new Error('Failed to fetch ramens');
+  form.addEventListener('submit', (e) => {
+    e.preventDefault()
+
+    const createNewRamen = {
+      name: e.target.name.value,
+      restaurant: e.target.restaurant.value,
+      image: e.target.image.value,
+      rating: e.target.rating.value,
+      comment: e.target.comment.value
     }
-    const ramens = await response.json();
-    console.log('Ramens fetched successfully:', ramens);
 
-  const ramenMenuDiv = document.getElementById('ramen-menu');
-  ramens.forEach((ramen) => {
-    const ramenImg = document.createElement('img');
-    ramenImg.src = ramen.image;
-    ramenImg.addEventListener('click', () => {
-      handleClick(ramen);
-    });
-    const deleteButton = document.createElement('button');
-      deleteButton.textContent = 'Delete';
-      deleteButton.addEventListener('click', () => {
-        handleDelete(ramen.id);
-        ramenMenuDiv.appendChild(ramenImg);
-        ramenItemDiv.appendChild(deleteButton);
-        ramenMenuDiv.appendChild(ramenItemDiv);
-  });
-})
-} catch (error) {
-  console.error('Error fetching ramens:', error.message);
-}
+      addRamen(createNewRamen)
+      form.reset() 
+    })
+  }
+
+const addRamen = (newRamen) => {
+  const menuImgs = document.querySelector('#ramen-menu')
+  const img = document.createElement('img')
+  img.src = newRamen.image
+  img.alt = newRamen.name
+  img.addEventListener('click', () => handleClick(newRamen))
+  menuImgs.appendChild(img)
 }
 
 const main = () => {
-  // Invoke displayRamens and addSubmitListener after the DOM has fully loaded
-  document.addEventListener('DOMContentLoaded', () => {
-    displayRamens();
-    addSubmitListener();
-  });
-};
+  displayRamens()
+  addSubmitListener()
+}
 
-main();
+main()
 
-// Export functions for testing
 export {
   displayRamens,
   addSubmitListener,
   handleClick,
   main,
 };
+
+/* ADD LATER FOR LEARNING PURPOSES 
+
+// const AddNewRamen = {
+  //   method: "POST",
+  //   headers: {
+  //     "Content-Type": "application/json",
+  //     Accept: "application/json",
+  //   },
+  //   body: JSON.stringify(createNewRamen)
+  // }
+
+  // fetch("http://localhost:3000/ramens", AddNewRamen)
+  // .then((res) => res.json())
+  // .then((data) => displayRamens([createNewRamen]))
+
+  addRamen(createNewRamen)
+  form.reset() 
+}
+
+// const addNewRamen = {
+//   const menuImgs = document.querySelector('#ramen-menu')
+//   const img = document.createElement('img')
+//   img.src = newRamen.image
+//   img.alt = newRamen.name
+//   img.addEventListener('click', () => handleClick(newRamen))
+//   menuImgs.appendChild(img)
+// }
+
+
+*/
+  
